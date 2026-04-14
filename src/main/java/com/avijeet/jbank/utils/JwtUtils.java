@@ -3,8 +3,8 @@ package com.avijeet.jbank.utils;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -13,18 +13,24 @@ import java.util.Date;
 
 @Component
 public class JwtUtils {
-    private static final String JWT_SECRET = "neobanksecretkey";
-    private static final long JWT_EXPIRATION_MS = 86400000L;
+    private final long jwtExpirationMs;
 
-    private final SecretKey signingKey = Keys.hmacShaKeyFor(JWT_SECRET.getBytes(StandardCharsets.UTF_8));
+    private final SecretKey signingKey;
+
+    public JwtUtils(
+            @Value("${app.jwt.secret:neobanksecretkey-neobanksecretkey}") String jwtSecret,
+            @Value("${app.jwt.expiration-ms:86400000}") long jwtExpirationMs
+    ) {
+        this.jwtExpirationMs = jwtExpirationMs;
+        this.signingKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+    }
 
     public String generateToken(Authentication authentication) {
-        UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
         Date now = new Date();
         return Jwts.builder()
-                .subject(userPrincipal.getUsername())
+                .subject(authentication.getName())
                 .issuedAt(now)
-                .expiration(new Date(now.getTime() + JWT_EXPIRATION_MS))
+                .expiration(new Date(now.getTime() + jwtExpirationMs))
                 .signWith(signingKey)
                 .compact();
     }
