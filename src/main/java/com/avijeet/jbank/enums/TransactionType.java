@@ -1,8 +1,9 @@
 package com.avijeet.jbank.enums;
 
 public enum TransactionType {
-    DEPOSIT,
+    ACCOUNT_OPEN,
     TRANSFER,
     FD_CREATION,
-    WITHDRAWAL
+    WITHDRAWAL,
+    ACCOUNT_CLOSE
 }
